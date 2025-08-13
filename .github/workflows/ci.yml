@@ -1,0 +1,66 @@
+name: CI
+on:
+  pull_request:
+  push:
+    branches: [ main ]
+
+jobs:
+  ci:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - name: Build & Test (backend)
+        working-directory: backend/citas-api
+        run: mvn -B -DskipTests=false verify
+
+      - name: Package backend (jar)
+        working-directory: backend/citas-api
+        run: mvn -B -DskipTests package
+
+      - name: Start backend (background)
+        working-directory: backend/citas-api
+        run: |
+          nohup java -jar target/*.jar > server.log 2>&1 &
+          echo $! > server.pid
+
+      - name: Wait for /health
+        run: |
+          for i in {1..60}; do
+            if curl -sf http://localhost:8080/health | grep -q "OK"; then
+              echo "API is up"; exit 0
+            fi
+            echo "Waiting API... ($i)"; sleep 2
+          done
+          echo "API did not start in time"; exit 1
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install Newman
+        run: npm install -g newman
+
+      - name: API Tests (Postman/Newman)
+        run: newman run postman/coleccion.json -e postman/env.ci.json
+
+      - name: Stop backend
+        if: always()
+        working-directory: backend/citas-api
+        run: |
+          if [ -f server.pid ]; then kill $(cat server.pid) || true; fi
+
+      - name: Frontend install & build
+        working-directory: frontend
+        run: |
+          npm ci
+          npm run build
