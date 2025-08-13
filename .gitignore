@@ -1,21 +1,53 @@
-# Java/Maven
-target/
-*.class
+# =========================
+# BACKEND (Spring Boot)
+# =========================
+
+# Logs
 *.log
+
+# Build output
+/target/
+!/src/main/resources/
+/bin/
+
+# IntelliJ / Eclipse / VSCode
+.idea/
 *.iml
-.mvn/
-.settings/
 .project
 .classpath
-
-# Node/Vite
-node_modules/
-dist/
-
-# IDEs
-.idea/
+.settings/
 .vscode/
 
-# OS
+# Maven local repo (opcional, no subir)
+/.mvn/timing.properties
+
+# Permitir el Maven Wrapper
+!.mvn/wrapper/maven-wrapper.jar
+!.mvn/wrapper/maven-wrapper.properties
+mvnw.cmd
+mvnw
+
+# =========================
+# FRONTEND (Vite / React)
+# =========================
+
+# Node
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+package-lock.json
+yarn.lock
+.pnpm-debug.log*
+
+# Build output
+dist/
+build/
+
+# Environment variables
+.env
+.env.*.local
+
+# Editor / Sistema
 .DS_Store
 Thumbs.db
